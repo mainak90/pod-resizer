@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Chart.Name }}-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  # remember the secretName
+  secretName: {{ .Chart.Name }}-tls
+  dnsNames:
+    # IMPORTANT: format is the following namespace.service-name.svc
+    - {{ .Chart.Name }}.{{ .Release.Namespace }}.svc
+  issuerRef:
+    name: {{ .Chart.Name }}-issuer

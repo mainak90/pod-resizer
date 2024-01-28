@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.controller.annotations }}
+  annotations:
+  {{ toYaml .Values.controller.annotations | indent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      serviceAccountName: {{ .Chart.Name }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.controller.image }}:{{ default .Chart.AppVersion .Values.controller.tag }}
+          imagePullPolicy: {{ .Values.controller.imagePullPolicy }}
+          {{- if .Values.controller.metricsAddr }}
+          env:
+            - name: METRICS_ENDPOINT_ADDR
+              value: {{ .Values.controller.metricsAddr }}
+          {{- end }}
+          args:
+          {{- if .Values.controller.podAnnotation }}
+          - "-pod-annotation"
+          {{- end }}
+          {{- if .Values.controller.certDir }}
+          - "-cert-dir={{ .Values.controller.certDir }}"
+          {{- end }}
+          {{- if .Values.controller.keyName }}
+          - "-key-name={{ .Values.controller.keyName }}"
+          {{- end }}
+          {{- if .Values.controller.certName }}
+          - "-cert-name={{ .Values.controller.certName }}"
+          {{- end }}
+          {{- if .Values.controller.certDir }}
+          volumeMounts:
+            - name: tls
+              mountPath: {{ .Values.controller.certDir }}
+              readOnly: true
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      {{- if .Values.controller.certDir }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ .Chart.Name }}-tls
+            optional: false
+      {{- end }}

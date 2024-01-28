@@ -1,0 +1,13 @@
+controller:
+  annotations:
+  podAnnotation: true
+  image: ghcr.io/mainak90/pod-resource-controller
+  tag: 0.0.3
+  imagePullPolicy: Always
+  certDir: /tmp/k8s-webhook-server/serving-certs
+  keyName: tls.key
+  certName: tls.crt
+  metricsAddr: http://prometheus-k8s.monitoring.svc:9090
+
+webhook:
+  failurePolicy: Ignore
