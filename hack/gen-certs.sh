@@ -17,3 +17,5 @@ openssl x509 -req \
   -in certs/server.csr \
   -CA certs/ca.crt -CAkey certs/ca.key -CAcreateserial \
   -out certs/server.crt
+
+kubectl create secret tls pod-resizer-webhook-tls -o yaml --cert=certs/server.crt --key=certs/server.key --dry-run=client > secret.yaml
